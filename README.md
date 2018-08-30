@@ -224,7 +224,7 @@ $result = $database->select("*")->where('id="1" AND name="Rytia"')->fetchAll();
 
 #### whereRaw() 方法
 
-检索条件，传入可以为 SQL 格式的条件，效果与 where() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
+检索条件，传入为 SQL 格式的条件，效果与 where() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -258,9 +258,9 @@ $result = $database->select("*")->where('id="1"')->orWhere('name="Rytia"')->fetc
 
 ```
 
-#### whereRaw() 方法
+#### orWhereRaw() 方法
 
-检索条件，传入可以为 SQL 格式的条件，效果与 orWhere() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
+或 检索条件，传入为 SQL 格式的条件，效果与 orWhere() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -270,3 +270,47 @@ $database = new Database($table);
 $result = $database->select("*")->whereRaw('id="1"')->orWhereRaw('name="Rytia"')->fetchAll();
 
 ```
+
+#### join() 方法
+
+用于根据两个或多个表中的列之间的关系查询数据。其中 method 可选 `left`，`right`，`full`，`inner`，且默认为 `inner`，支持链式操作，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$result = $database->select('DISTINCT zhong.name,wiki.coordinate')
+					->join('zhong', 'full')
+                    ->on('wiki.zhong=zhong.id')
+                    ->fetchAll();
+```
+
+#### on() 方法
+
+根据关系查询数据表。传入为 SQL 格式的条件，支持链式操作，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$result = $database->select('*')->on('id="1"')->fetchAll();
+
+// 此方法更常见于与 join() 配合使用
+$result = $database->select('DISTINCT zhong.name,wiki.coordinate')
+					->join('zhong', 'full')
+                    ->on('wiki.zhong=zhong.id')
+                    ->fetchAll();
+```
+
+#### orderBy() 方法
+
+根据字段排列结果集。传入为排列所依据的字段名以及排序方式，排序方式为 ASC（顺序，默认）与 DESC （倒序）
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$result = $database->select('*')->orderBy("id", "DESC")->fetchAll();
+```
+
+#### insert() 方法
