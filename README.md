@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180829
+版本：20180831
 
 ## 简介
 
@@ -204,7 +204,8 @@ $result = $database->fetchAll();
 
 #### where() 方法
 
-检索条件，传入可以为数组或者是 SQL 格式的条件，支持链式操作，具体如下：
+检索条件。
+传入可以为数组或者是 SQL 格式的条件，支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -224,7 +225,8 @@ $result = $database->select("*")->where('id="1" AND name="Rytia"')->fetchAll();
 
 #### whereRaw() 方法
 
-检索条件，传入为 SQL 格式的条件，效果与 where() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
+检索条件。
+传入为 SQL 格式的条件，效果与 where() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -237,7 +239,8 @@ $result = $database->select("*")->where('id="1" AND name="Rytia"')->fetchAll();
 
 #### orWhere() 方法
 
-或 检索条件，传入可以为数组或者是 SQL 格式的条件，支持链式操作，具体如下：
+或 检索条件。
+传入可以为数组或者是 SQL 格式的条件，支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -260,7 +263,8 @@ $result = $database->select("*")->where('id="1"')->orWhere('name="Rytia"')->fetc
 
 #### orWhereRaw() 方法
 
-或 检索条件，传入为 SQL 格式的条件，效果与 orWhere() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
+或 检索条件。
+传入为 SQL 格式的条件，效果与 orWhere() 一致（只不过少了数组功能，兼顾熟悉 Laravel 框架的朋友快速上手），支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -273,7 +277,8 @@ $result = $database->select("*")->whereRaw('id="1"')->orWhereRaw('name="Rytia"')
 
 #### join() 方法
 
-用于根据两个或多个表中的列之间的关系查询数据。其中 method 可选 `left`，`right`，`full`，`inner`，且默认为 `inner`，支持链式操作，具体如下：
+用于根据两个或多个表中的列之间的关系查询数据。
+其中 method 可选 `left`，`right`，`full`，`inner`，且默认为 `inner`，支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -287,7 +292,8 @@ $result = $database->select('DISTINCT zhong.name,wiki.coordinate')
 
 #### on() 方法
 
-根据关系查询数据表。传入为 SQL 格式的条件，支持链式操作，具体如下：
+根据关系查询数据表。
+传入为 SQL 格式的条件，支持链式操作，具体如下：
 
 ```php
 $table = "demo";
@@ -304,7 +310,8 @@ $result = $database->select('DISTINCT zhong.name,wiki.coordinate')
 
 #### orderBy() 方法
 
-根据字段排列结果集。传入为排列所依据的字段名以及排序方式，排序方式为 ASC（顺序，默认）与 DESC （倒序）
+根据字段排列结果集。
+传入为排列所依据的字段名以及排序方式，排序方式为 ASC（顺序，默认）与 DESC （倒序）
 
 ```php
 $table = "demo";
@@ -314,3 +321,317 @@ $result = $database->select('*')->orderBy("id", "DESC")->fetchAll();
 ```
 
 #### insert() 方法
+
+添加一条新的数据。
+传入为关联数组，返回为是否成功的布尔值，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$data = [
+  "title" => "测试标题",
+  "content" => "测试内容",
+  "author" => "Rytia"
+]
+$result = $database->insert($data);
+
+```
+
+#### update() 方法
+
+更新数据表中的数据。
+传入为关联数组，返回为是否成功的布尔值，更新前应该先使用 where 等条件语句进行定位，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$data = [
+  "title" => "测试标题",
+  "content" => "测试内容",
+  "author" => "Rytia"
+]
+$result = $database->where(["id" => 1])->update($data);
+```
+
+#### delete() 方法
+
+删除数据表中的数据。
+返回为是否成功的布尔值，更新前应该先使用 where 等条件语句进行定位，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+$result = $database->where(["id" => 1])->delete();
+```
+
+#### paginate() 方法
+
+数据库分页，内部通过调用 SQL LIMIT 实现。
+建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合（具体参照文档 Collection 一章），传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下。
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+// 当 where() 方法接受空数组时，将返回全部数据（相当于传入条件为空
+// setModel() 方法将为该数据表指定一个模型，而返回的 Collection 集合中元素便是该模型的实例 （具体参照文档 Model 一章）
+$result = $database->where([])->setModel(Demo::class)->paginate(3);
+
+// 通过 dd 函数调试结果
+dd($result)
+
+// 此时请求 /?page=1，则会返回以下信息
+System\Collection Object
+(
+    [collectionItems:protected] => Array
+        (
+            [0] => Model\Demo Object
+                (
+                    [objectData:protected] => Array
+                        (
+                            [id] => 1
+                            [title] => 嘿！Every Body @~@
+                            [content] => 测试的内容！！
+                            [author] => Rytia！
+                            [created_at] => 2018-08-08 00:00:00
+                            [updated_at] => 2018-08-09 00:00:00
+                        )
+
+                )
+
+            [1] => Model\Demo Object
+                (
+                    [objectData:protected] => Array
+                        (
+                            [id] => 2
+                            [title] => 还是标题
+                            [content] => 这是无敌的测试
+                            [author] => Rytia
+                            [created_at] => 0000-00-00 00:00:00
+                            [updated_at] => 0000-00-00 00:00:00
+                        )
+
+                )
+
+            [2] => Model\Demo Object
+                (
+                    [objectData:protected] => Array
+                        (
+                            [id] => 4
+                            [title] => 标题啦啦
+                            [content] => 这是依旧是无敌的测试
+                            [author] => Rytia
+                            [created_at] => 2018-08-22 00:00:00
+                            [updated_at] => 
+                        )
+
+                )
+
+        )
+
+    [collectionPages] => stdClass Object
+        (
+            [currentPage] => 1
+            [totalItems] => 14
+            [totalPages] => 5
+            [hasNext] => true
+            [nextUrl] => /api/test/2?page=2
+        )
+
+)
+
+```
+
+该方法由于结合了 Collection 集合以及 Model 模型的相关内容，如不理解建议阅读完全文档后实操。
+
+#### fetch() 方法
+
+执行 SQL 语句并取回第一条结果。
+
+#### fetchAll() 方法
+
+执行 SQL 语句并取回结果集。
+
+#### get() 方法
+执行以及构造好的 SQL 语句。
+返回为 Collection 集合。
+上面几个构造查询的方法中，均使用了 fetchAll() 方法取出数据表中的数据，而本方法与 fetchAll() 有异曲同工之处，且在 Model 模型已经指定的情况下可以相互替换。
+
+> `get()`、`fetch()` 与 `fetchAll()` 之间有什么区别？
+> 1. 三者功能均为根据已经构造好的条件从数据表中取出数据。
+> 2. `get()` 在使用之前，必须已经为查询构造器设置好 Model 模型，包括但不限于以下几种形式：
+>   1. `Demo::where([ ])->get()`
+>   2. `(new Database("tableName"))->setModel(Demo::class)->where([ ])->get()`
+>   3. `Database::table("tableName")->setModel(Demo::class)->where([ ])->get()`
+>   4. `Database::model(Demo::class)->where([ ])->get()`
+> 3. `get()` 返回为相应对象数组，即为 Collection 实例；`fetch()` 返回为关联数组，且是数据表中符合条件的第一条数据；`fetchAll()` 返回为关联二维数组，与 `get()` 返回结果相同但形式不同。
+
+### 事务操作
+
+PHP QuickORM 框架支持数据库事务操作，内部亦是通过对 `PDO` 的封装，具体如下：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+// 开始一个事务
+$database->beginTransaction();
+
+$data = [
+  "title" => "测试标题",
+  "content" => "测试内容",
+  "author" => "Rytia"
+]
+$result = $database->where(["id" => 1])->update($data);
+
+// 提交事务
+$database->commit();
+```
+
+以上代码并没有使用事务回滚，在具体项目中，我们该建议您这样做：
+
+```php
+$table = "demo";
+$database = new Database($table);
+
+try{
+	// 开始一个事务
+	$database->beginTransaction();
+
+	$data = [
+  		"title" => "测试标题",
+  		"content" => "测试内容",
+  		"author" => "Rytia"
+	];
+	$result = $database->where(["id" => 1])->update($data);
+
+	// 提交事务
+	$database->commit();
+	
+} catch (Exception $e) {
+
+	// 操作失败，事务回滚
+	$database->rollBack();
+  	trigger_error("Failed: " . $e->getMessage(), E_USER_ERROR);
+  	
+}
+```
+## 集合
+
+PHP QuickORM 框架提供了一种新的数据类型 Collection，是对 PHP 序列数组的二次封装，以便于支持数据聚合功能，以及对对象的储存。
+
+### 创建与判断
+
+Collection 集合的创建支持两种方式，内部实现效果一致。具体如下：
+
+```php
+$array = ["1"， "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 通过静态方法创建集合
+$collection = Collection::make($array);
+
+// 判断变量是不是 Collection 集合
+if($object instanceof Collection){
+  
+}
+
+// 判断集合是否为空
+if($collection->isEmpty()){
+  
+}
+```
+
+### 栈的实现
+
+Collection 集合可以很方便的实现栈的操作（即后进先出），具体如下：
+
+```php
+$collection = new Collection();
+
+// 元素进栈
+$collection->push("1");
+$collection->push("2");
+
+// 元素出栈
+echo $collecton->pop(); // 显示 2
+
+```
+
+### 队列实现
+
+Collection 集合可以很方便的实现队列的操作（即先进先出），具体如下：
+
+```php
+$collection = new Collection();
+
+// 元素入队
+$collection->push("1");
+$collection->push("2");
+
+// 元素出队
+echo $collecton->shift(); // 显示 1
+
+// 插入元素到队列头部
+$collection->unShift("3");
+
+```
+
+### 数据聚合
+
+Collection 自带多种数据聚合方法，分别有 `first()`，`last()`，`max()`，`min()`，`average()`，`sum()`，`count()`
+
+#### 序列数组
+
+当 Collection 集合中所储存的数据均为数值时，数据聚合功能具体如下：
+
+```php
+$array = ["1"， "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 显示第一个元素（1）
+echo $collection->first();
+
+// 显示最后一个元素（5）
+echo $collection->last();
+
+// 显示最大值（5）
+echo $collection->max();
+
+// 显示最小值（1）
+echo $collection->min();
+
+// 显示平均值（3）
+echo $collection->average();
+
+// 显示数值总和（15）
+echo $collection->sum();
+
+// 显示集合中元素个数
+echo $collection->count();
+
+```
+
+#### 实例集合
+
+实例集合，即是集合中储存的内容为模型实例化之后的对象，可以跳至文档 Model 模型部分的 数据聚合 查看。
+
+### 集合合并
+
+### 集合包含
+
+### 集合排序
+
+### 集合分页
+
+### 集合迭代
+
+### 数组转换
+
