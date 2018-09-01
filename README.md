@@ -491,7 +491,7 @@ $result = $database->where(["id" => 1])->update($data);
 $database->commit();
 ```
 
-以上代码并没有使用事务回滚，在具体项目中，我们该建议您这样做：
+以上代码并没有使用事务回滚，在具体项目中，我们更建议您这样做：
 
 ```php
 $table = "demo";
