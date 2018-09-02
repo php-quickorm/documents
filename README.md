@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180831
+版本：20180902
 
 ## 简介
 
@@ -370,7 +370,7 @@ $result = $database->where(["id" => 1])->delete();
 #### paginate() 方法
 
 数据库分页，内部通过调用 SQL LIMIT 实现。
-建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合（具体参照文档 Collection 一章），传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下。
+建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合（具体参照文档 Collection 一章），传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下：
 
 ```php
 $table = "demo";
@@ -463,10 +463,10 @@ System\Collection Object
 > `get()`、`fetch()` 与 `fetchAll()` 之间有什么区别？
 > 1. 三者功能均为根据已经构造好的条件从数据表中取出数据。
 > 2. `get()` 在使用之前，必须已经为查询构造器设置好 Model 模型，包括但不限于以下几种形式：
->   1. `Demo::where([ ])->get()`
->   2. `(new Database("tableName"))->setModel(Demo::class)->where([ ])->get()`
->   3. `Database::table("tableName")->setModel(Demo::class)->where([ ])->get()`
->   4. `Database::model(Demo::class)->where([ ])->get()`
+>   a. `Demo::where([ ])->get()`
+>   b. `(new Database("tableName"))->setModel(Demo::class)->where([ ])->get()`
+>   c. `Database::table("tableName")->setModel(Demo::class)->where([ ])->get()`
+>   d. `Database::model(Demo::class)->where([ ])->get()`
 > 3. `get()` 返回为相应对象数组，即为 Collection 实例；`fetch()` 返回为关联数组，且是数据表中符合条件的第一条数据；`fetchAll()` 返回为关联二维数组，与 `get()` 返回结果相同但形式不同。
 
 ### 事务操作
@@ -528,7 +528,7 @@ PHP QuickORM 框架提供了一种新的数据类型 Collection，是对 PHP 序
 Collection 集合的创建支持两种方式，内部实现效果一致。具体如下：
 
 ```php
-$array = ["1"， "2", "3", "4", "5"];
+$array = ["1", "2", "3", "4", "5"];
 
 // 通过创建新对象的方式创建集合
 $collection = new Collection($array);
@@ -591,7 +591,7 @@ Collection 自带多种数据聚合方法，分别有 `first()`，`last()`，`ma
 当 Collection 集合中所储存的数据均为数值时，数据聚合功能具体如下：
 
 ```php
-$array = ["1"， "2", "3", "4", "5"];
+$array = ["1", "2", "3", "4", "5"];
 
 // 通过创建新对象的方式创建集合
 $collection = new Collection($array);
@@ -625,13 +625,195 @@ echo $collection->count();
 
 ### 集合合并
 
+将两个集合合并为一个大集合。具体如下：
+
+```php
+$array1 = ["1", "2", "3", "4", "5"];
+$array2 = ["6", "7", "8", "9", "10"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array1);
+
+// 将集合与数组合并
+$collection->merge($array2);
+
+// 将集合与集合合并
+$collectionTemp = new Collection($array2);
+$collection->merge($collectionTemp);
+```
+
+
 ### 集合包含
+
+检测元素是否在集合中或某集合是否为该集合的子集。具体如下：
+
+```php
+$array1 = ["1", "2", "3", "4", "5"];
+$array2 = ["1", "2", "3"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array1);
+
+// 判断元素是否在集合中
+$result = $collection->contains("1");
+
+// 判断集合/数组是否为当前集合子集
+$result = $collection->contains($array2);
+
+```
 
 ### 集合排序
 
+#### 序列数组
+
+当 Collection 集合中所储存的数据均不为对象时，可以看作一个普通序列数组。
+其默认排序方式为升序（ASC），默认排序方法为 PHP 自带的 `asrot` (底层由变种的快排实现，时间复杂度为 `o(NLogN))`，若调用其余排序方法请传入参数 `sortFunction`。具体如下：
+
+```php
+$array = ["1", "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 升序排序
+$collection->sort();
+
+// 降序排序
+$collection->sort("DESC");
+
+// 采用其他 PHP 排序方法，这里使用 ksort() 为例
+$collection->("DESC", "ksort");
+
+// 采用其他需要回调函数的 PHP 排序方法，这里以 usort() 为例
+$collection->("", "usort", function($a, $b){
+	// 排序函数主体
+});
+
+```
+
+#### 实例集合
+
+当集合中储存的内容为模型实例化之后的对象，可以跳至文档 Model 模型部分的 数据排序 查看。
+
+
 ### 集合分页
+
+Collection 集合自带分页功能。
+建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合（具体参照文档 Collection 一章），传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下：
+
+```php
+$array = ["1", "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 通过 dd 函数调试结果
+$result = $collection->paginate(2);
+dd($result);
+
+// 此时请求 /?page=1，则会返回以下信息
+System\Collection Object
+(
+    [collectionItems:protected] => Array
+        (
+            [0] => "1"
+            [1] => "2"
+            [2] => "3"
+
+        )
+
+    [collectionPages] => stdClass Object
+        (
+            [currentPage] => 1
+            [totalItems] => 5
+            [totalPages] => 2
+            [hasNext] => true
+            [nextUrl] => /api/test/2?page=2
+        )
+
+)
+
+```
 
 ### 集合迭代
 
-### 数组转换
+Collection 集合实现了 `ArrayAccess` 和 `IteratorAggregate` 接口，可以直接使用 foreach 进行遍历，且诸多使用方法与 PHP 数组相同。具体如下：
+
+```php
+$array = ["1", "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 使用 foreach 遍历
+foreach ($collection as $item) {
+    echo $item;
+}
+
+// 使用 for 遍历
+for ($i = 0; $i < $collection->count(); $i++) { 
+	echo $collection[$i];
+}
+```
+
+### 格式转换
+
+Collection 集合实例可以向其他形式转换，以方便开发使用。
+
+#### JSON 
+
+当强制以字符串形式操作 Collection 集合时，将会自动转化为 JSON 格式输出，同时亦提供 toJSON() 方法进行转换。具体如下：
+
+```php
+$array = ["1", "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 显示输出 JSON 
+echo $collection;
+
+// 转化为 JSON 格式
+$result = $collection->toJson();
+
+```
+
+#### 普通数组
+
+```php
+$array = ["1", "2", "3", "4", "5"];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 转化为普通数组
+$newArray = $collection->toArray();
+```
+
+#### 实例集合
+
+符合条件(字段齐全)的关联数组可以直接格式化为某个 Model 的对象实例集合。具体如下：
+
+```php
+$array = [
+	[
+		"id" 		=>	"1",
+		"title"		=>	"测试标题",
+		"content"	=>	"测试内容",
+		"author"	=>	"Rytia"
+	],
+	[
+		"id" 		=>	"2",
+		"title"		=>	"测试标题",
+		"content"	=>	"测试内容",
+		"author"	=>	"Rytia"
+	]
+];
+
+// 通过创建新对象的方式创建集合
+$collection = new Collection($array);
+
+// 转换为 Demo 模型的实例集合
+$collection->format(Demo::class);
+```
 
