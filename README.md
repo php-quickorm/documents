@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180902
+版本：20180905
 
 ## 简介
 
@@ -154,6 +154,14 @@ PHP QuickORM 框架的路由系统采用的是请求地址与控制器方法一�
 ```
 
 理论上 PHP 所能接受的所有 HTTP 方法，在 PHP QuickORM 框架中都可以使用，只需要新建好控制器以及方法即可。
+
+## 请求
+
+TODO
+
+## 响应
+
+TODO
 
 ## 数据库
 
@@ -816,4 +824,51 @@ $collection = new Collection($array);
 // 转换为 Demo 模型的实例集合
 $collection->format(Demo::class);
 ```
+
+## 模型
+
+PHP QuickORM 框架在 Model 模型层提供整套`ORM` 相关方法，可以方便的实现 `CURD` ，助你完成开发。
+
+### 定义
+
+这里以 `Demo` 为例定义一个新的模型。
+
+我们需要将其命名为 `Demo.php` 并放置于 `App\Model` 目录下，具体内容如下：
+
+```php
+namespace Model;
+use System\Model;
+
+class Demo extends Model
+{
+    // 数据表名称
+	public static $table = 'demo';
+  
+}
+```
+
+接着按照自己项目实际需要，对数据表 `demo` 进行定义。本文档的模型演示中数据表字段如下：
+
+- id, int, AUTO_INCREMENT
+- title, varchar(255)
+- content, varchar(255)
+- author, varchar(255)
+
+### 新增
+
+
+### 修改
+
+
+### 删除
+
+
+### 查询
+
+#### 查询构造器
+
+#### 查询分页
+
+### 聚合
+
 
