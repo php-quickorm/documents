@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180905
+版本：20180906
 
 ## 简介
 
@@ -529,7 +529,7 @@ try{
 ```
 ## 集合
 
-PHP QuickORM 框架提供了一种新的数据类型 Collection，是对 PHP 序列数组的二次封装，以便于支持数据聚合功能，以及对对象的储存。
+PHP QuickORM 框架提供了一种新的数据类型 `Collection`，是对 PHP 序列数组的二次封装，以便于支持数据聚合功能，以及对对象的储存。
 
 ### 创建与判断
 
@@ -629,7 +629,7 @@ echo $collection->count();
 
 #### 实例集合
 
-实例集合，即是集合中储存的内容为模型实例化之后的对象，可以跳至文档 Model 模型部分的 数据聚合 查看。
+实例集合，即是集合中储存的内容为模型实例化之后的对象，可以跳至本文档 Model 模型部分的聚合查看。
 
 ### 集合合并
 
@@ -707,7 +707,7 @@ $collection->("", "usort", function($a, $b){
 ### 集合分页
 
 Collection 集合自带分页功能。
-建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合（具体参照文档 Collection 一章），传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下：
+建议在 Controller 层调用，需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合，传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下：
 
 ```php
 $array = ["1", "2", "3", "4", "5"];
@@ -856,19 +856,224 @@ class Demo extends Model
 
 ### 新增
 
+新添加一条数据的方法有多种，具体如下：
+
+使用模型静态方法新增数据
+
+```php
+$data = [
+	'title'		=>	'测试标题',
+  	'content'	=>	'测试内容',
+  	'author'	=>	'Rytia'
+];
+Demo::create($data);
+```
+
+通过实例化新增数据
+```php
+$data = [
+	'title'		=>	'测试标题',
+  	'content'	=>	'测试内容',
+  	'author'	=>	'Rytia'
+];
+
+$instance = new Demo($data);
+$instance->save();
+```
+
+实例化之后通过赋值新增数据
+```php
+$instance = new Demo();
+$instance->title = '测试标题';
+$instance->content = '测试内容';
+$instance->author = 'Rytia';
+$instance->save();
+```
+
+若想通过所接收的  `POST` 内容来新增数据，可以使用如下写法：
+```php
+// 使用 PHP QuickORM 框架的 Request 请求类
+Demo::create($this->request->all());
+
+// 使用 PHP POST 数组
+Demo::create($_POST);
+```
 
 ### 修改
 
+修改一条数据的方法主要有以下多种，具体如下：
+
+使用模型静态方法修改数据
+```php
+// 找到 ID 为 1 的那行数据
+$instance = Demo::find(1);
+  
+// 将标题修改为 demo
+$data = ['title' => 'demo'];
+$instance->update($data);
+```
+
+实例化之后通过赋值修改数据
+```php
+// 找到 ID 为 1 的那行数据
+$instance = Demo::find(1);
+  
+// 将标题修改为 demo
+$instance->title = 'demo';
+$instance->save();
+```
+
+使用数据库方法批量修改数据
+
+```php
+// 找到 title 为 demo 的多行数据
+$instance = Demo::where(['title' => 'demo']);
+  
+// 将内容修改为 text
+$instance->update(['content' => 'text']);
+```
 
 ### 删除
 
+删除一条数据的方法主要有以下多种，具体如下：
+
+实例化之后执行删除方法
+
+```php
+// 找到 ID 为 1 的那行数据
+$instance = Demo::find(1);
+  
+// 将这行数据删除
+$instance->delete();
+```
+
+使用数据库方法批量删除数据
+
+```php
+// 找到 title 为 demo 的多行数据
+$instance = Demo::where(['title' => 'demo'])；
+  
+// 将符合要求的多行数据
+$instance->delete();
+```
 
 ### 查询
 
+PHP QuickORM 框架支持多种查询方法。
+其中使用静态方法查询将会返回一个对应模型的实例或者实例集合，可以参考本文档中的“集合”一章进行操作。
+而采用查询构造器将返回 `Database` 对象，可参考本文档中 “数据库” 一章进行操作。您亦可以在查询构造器的链式操作中加上 `get()` 方法将其转换为 `Collection` 对象（即转换为实例集合），从而参考本文档中的“集合”一章进行操作。
+
+#### 静态查询
+
+静态查询即通过模型提供的静态方法进行查询，具体如下：
+
+```php
+// 找到 ID 为 1 的一行数据
+$instance = Demo::find(1);
+
+// 搜索 titile 中含有 hello 的数据
+$collection = Demo::search("title","%hello%");
+
+// 显示全部数据
+$collection = Demo::all();
+```
+
 #### 查询构造器
+
+通过模型的 `where()`、`whereRaw()`、`raw()`  方法，可以直接调用数据库的查询构造器，具体如下：
+
+```php
+// 查询构造器演示，更多方法请参照本文档“数据库”一章
+
+$database	= Demo::where(["title" => "测试标题"])->orWhere(["title" => "演示标题"]);
+$collection	= Demo::where(["title" => "测试标题"])->orWhere(["title" => "演示标题"])->get();
+
+$database	= Demo::whereRaw('title="测试标题"')->orderBy("id", "DESC");
+$collection	= Demo::whereRaw('title="测试标题"')->orderBy("id", "DESC")->get();
+
+$database	= Demo::raw("SELECT * FROM {table} WHERE id=1");
+$collection = Demo::raw("SELECT * FROM {table} WHERE id=1")->get();
+```
 
 #### 查询分页
 
+PHP QuickORM 框架为模型提供了 `paginate()` 方法，可以将当前模型全部数据通过分页输出。
+该方法需使用 `GET` 方式传入 `page` 字段用于展示第 n 页。 返回为 Collection 集合，传入的第一个参数为每页所展示的条数，第二个参数为是否开启分页的相关信息输出，默认为 true。开启后会展示当前页码、总计条数、总计页数以及是否还有下一页等信息，具体如下：
+
+```php
+// 将全部数据以每 3 条为一页输出
+Demo::paginate(3);
+
+// 此时请求 /?page=1，则会返回第一页的信息
+```
+
+若返回的是 `Collection` 或者 `Database` 实例，同样可以使用 `paginate()` 方法进行分页，具体参照本文档相对于章节。 
+
 ### 聚合
+
+Model 模型的聚合，即是储存着模型多个实例的 `Collection` 集合的聚合，具体如下：
+
+```php
+// 获取模型中 title 字段为 test 的全部数据
+$collection = Demo::where([ "title" => "test" ])->get();
+
+// 显示第一个元素
+echo $collection->first();
+
+// 显示最后一个元素
+echo $collection->last();
+
+// 显示集合中 age 字段为最大值的实例
+echo $collection->max("age");
+
+// 显示集合中 age 字段为最小值的实例
+echo $collection->min("age");
+
+// 显示集合中 age 字段的平均值
+echo $collection->average("age");
+
+// 显示集合中 age 字段的数值总和
+echo $collection->sum("age");
+
+// 显示集合中元素个数
+echo $collection->count();
+```
+
+### 排序
+
+Model 模型的排序，即是储存着模型多个实例的 `Collection` 集合的排序。
+其默认排序方式为升序（ASC），排序方法为 PHP 自带的 `usrot`，具体如下：
+
+```php
+// 获取模型中 title 字段为 test 的全部数据
+$collection = Demo::where([ "title" => "test" ])->get();
+
+// 根据 age 字段升序排序
+$collection->sortBy("age");
+
+// 根据 age 字段降序排序
+$collection->sortBy("age", "DESC");
+```
+
+### 转换 
+
+Model 模型的实例对象可以转换为 `JSON` 字符串，具体如下：
+
+```php
+// 找到 ID 为 1 的一行数据
+$instance = Demo::find(1);
+
+// 显示输出 JSON 
+echo $collection;
+
+// 转化为 JSON 格式
+$result = $collection->toJson();
+
+```
+
+若返回的是 `Collection` 或者 `Database` 实例，同样可以使用 `toJson()` 方法进行转换。
+
+同时 `Collection` 另有 `toArray()` 方法可以将集合转换为普通 PHP 数组，具体参照本文档相对于章节。 
+
 
 
