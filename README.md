@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180906
+版本：20180911
 
 ## 简介
 
@@ -157,11 +157,182 @@ PHP QuickORM 框架的路由系统采用的是请求地址与控制器方法一�
 
 ## 请求
 
-TODO
+PHP QuickORM 框架针对每一次请求，都会生成一个 Request 类的对象，在开发过程中关于请求的信息均可从中获取。
+
+### 请求内容
+
+#### 全部字段
+
+获取请求的全部字段，包括但不限定 `GET` 、`POST` 等方法。
+返回为 PHP `Array` 数组，在 Controller 控制器层的操作具体如下：
+
+```php
+// 假设此时访问 /?info=test
+
+$content = $this->request()->all(); // $content['info'] = test
+```
+
+#### 单个字段
+
+获取请求中某个字段的内容，包括但不限定 `GET` 、`POST` 等方法。
+返回为字符串或数组，且对字段的获取与请求方法无关。在 Controller 控制器层的操作具体如下：
+```php
+// 假设此时以 GET 方式访问 /?info=test
+
+$content = $this->request('info'); // test
+
+// 假设此时以 POST 方式发送 user=demo
+
+$content = $this->request('user'); // demo
+
+// 假设此时以 DELETE 方式发送 user=demo 到 /?info=test
+
+$content = $this->request('user'); // demo
+$content = $this->request('info'); // test
+
+// 以下几种方法效果一致，可根据习惯使用：
+$content = $this->request()->get('user'); // demo
+$content = $this->request()->get('info'); // test
+```
+
+### 请求方法
+
+获取请求的方法。具体如下：
+
+```php
+$method = $this->request()->getMethod();
+```
+
+### 请求路径
+
+#### 目录地址
+
+获取返回的目录地址。具体如下：
+
+```php
+// 假设访问 /hello/word/?info=test
+$method = $this->request()->getPath(); // /hello/word/
+```
+
+#### 请求链接
+获取返回的请求链接。具体如下：
+
+```php
+// 假设访问 /hello/word/?info=test
+$method = $this->request()->getUrl(); // /hello/word/?info=test
+```
 
 ## 响应
 
-TODO
+在项目开发过程中，针对每一个请求，都必须做出合理的响应。作为针对 `MVVM` 架构而生的 PHP QuickORM，响应方法如下。
+
+### JSON 数据
+
+直接返回 JSON 格式的数据，并返回 HTTP 状态码。具体如下：
+
+```php
+$data = ["text" => "hello word"];
+
+// 直接返回 JSON 格式的数据，默认 HTTP 状态码为 200
+return $this->response()->json($data);
+
+// 直接返回 JSON 格式的数据，并设置 HTTP 状态码为 404
+return $this->response()->json($data, '404');
+```
+
+### JSON 对象
+
+返回 JSON 格式的对象，包含 `errcode`、`errmsg`、`data` 三个属性，常用于使前后端交互更加规范化，具体如下：
+
+```php
+
+$data = ["text" => "hello word"];
+
+// 返回 JSON 对象，默认 HTTP 状态码为 200，errcode 为 0，errmsg 为空
+return $this->response($data);
+
+// 返回 JSON 对象，并设置 HTTP 状态码为 404，且保持默认的 errcode 为 0，errmsg 为空
+return $this->response($data, '404');
+
+// 返回 JSON 对象，并设置 HTTP 状态码为 404，并设置 errcode 为 500001，errmsg 为 hello
+return $this->response($data, '404', '500001', );
+
+// 以下几种方法效果一致，可根据习惯使用
+return $this->response()->dataEcode($data);
+return $this->response()->dataEcode($data, '404');
+return $this->response()->dataEcode($data, '404', '500001', );
+
+// JSON 对象示例
+//    {
+//      "errcode": "0",
+//      "errmsg": "null",
+//      "data": {
+//          "text": "hello word"
+//      }
+//    }
+```
+
+若您的数据调用了 `paginate()` 方法实现分页，则应该使用 JSON 分页对象，具体表现为在返回对象增加了 `page` 属性，如下：
+
+```php
+$data = Demo::piginate(3);
+
+// 返回 JSON 对象，默认 HTTP 状态码为 200，errcode 为 0，errmsg 为空
+return $this->response()->pageEncode($data);
+
+// JSON 分页对象示例
+//	{
+// 		"errcode": 0,
+//		"errmsg": "",
+//		"data": [{
+//			"id": "1",
+//			"title": "嘿！Every Body @~@",
+//			"content": "测试的内容！！",
+//			"author": "3"
+//		}, {
+//			"id": "2",
+//			"title": "还是标题",
+//			"content": "这是无敌的测试",
+//			"author": "Rytia"
+//		}, {
+//			"id": "4",
+//			"title": "标题啦啦",
+//			"content": "这是依旧是无敌的测试",
+//			"author": "Rytia"
+//		}],
+//		"page": {
+//			"currentPage": 1,
+//			"totalItems": 14,
+//			"totalPages": 5,
+//			"hasNext": "true",
+//			"nextUrl": "\/api\/test\/1?page=2"
+//		}
+//	}
+```
+
+### 重定向
+
+使用 302 重定向至其他链接，具体如下：
+
+```php
+return $this->response()->redirect("http://www.github.com/php-quickorm");
+```
+
+### 响应头部
+
+用于响应请求时，增加额外的 `responose header` 信息，支持链式操作。具体如下：
+
+```php
+$data = ["text" => "hello word"];
+
+// 分步操作
+$this->response()->setHeader("Powered_By", "php-quickorm");
+return $this->response()->json($data);
+
+// 链式操作
+return $this->response()->setHeader("Powered_By", "php-quickorm")->json($data);
+
+```
 
 ## 数据库
 
@@ -690,10 +861,10 @@ $collection->sort();
 $collection->sort("DESC");
 
 // 采用其他 PHP 排序方法，这里使用 ksort() 为例
-$collection->("DESC", "ksort");
+$collection->sort("DESC", "ksort");
 
 // 采用其他需要回调函数的 PHP 排序方法，这里以 usort() 为例
-$collection->("", "usort", function($a, $b){
+$collection->sort("", "usort", function($a, $b){
 	// 排序函数主体
 });
 
@@ -1074,6 +1245,4 @@ $result = $collection->toJson();
 若返回的是 `Collection` 或者 `Database` 实例，同样可以使用 `toJson()` 方法进行转换。
 
 同时 `Collection` 另有 `toArray()` 方法可以将集合转换为普通 PHP 数组，具体参照本文档相对于章节。 
-
-
 
