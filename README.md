@@ -1,6 +1,6 @@
 # PHP QuickORM 框架开发文档
 
-版本：20180911
+版本：20180913
 
 ## 简介
 
@@ -62,7 +62,7 @@ composer create-project php-quickorm/framework
 
 ```php
 public function __construct(){
-	$this->connect = self::initialConnect('localhost', 'orm', 'root', 'password');+
+	$this->connect = self::initialConnect('localhost', 'orm', 'root', 'password');
 }
 ```
 #### 修改框架链接
